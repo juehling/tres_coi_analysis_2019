@@ -135,24 +135,39 @@ Here, for general exploration of the data, we plot families that occur in over 2
 
 Model: Beta Logistic Regression: (percent aquatic ~ age*site + treatment + (1|nestID))
 
-Figure A: Something like the following
-
 ![](lh_age_days_site.png)\
 
-#### Question B: Does a mother's CORT and mass predict the percent aquatic in the diet of her nestlings?
+#### Question B: Does a mother's CORT, mass, and/or wing predict the percent aquatic in the diet of her nestlings?
 
-When I was writing this question, I first wrote: In nestlings, do mass, CORT, or fledge success predict aquatic insect content in diet? However, it felt like it should be written the other way around: Does aquatic insect content predict mass, CORT, or fledge success. However, this conflicts with the plan of focusing on "what predicts aquatic insect content in the diet." Additionally, since the nestlings don't really have any control over their diets, I wonder if it's worth making this model adult-focused, as I've laid out below.
+Model: Beta Logistic Regression: (percent aquatic in individual nestling diet ~ mom's CORT + mom's mass + mom's wing + site + 1|nestID)
 
-Model: Beta Logistic Regression: (percent aquatic (nest level) ~ mom's CORT + mom's mass)
-
-CORT = probably baseline?
-
-#### Question C: Does a female's CORT and mass predict the percent aquatic in her diet?
-
-Model: Beta Logistic Regression: (percent aquatic ~ CORT + mass)
-
-CORT = probably baseline?
+I've made a lot of figures here but nothing seems to show a clear relationship with nestling diet except perhaps experimental treatment and site.
 
 
+![](mom_exp_n_diet.png)\
+
+
+This figure is made just with nestling day 12 samples. Also, note that this figure looks a little different than the boxplots in Question 2A because this only includes nestlings for which there are also adult samples. I need to go back and change the code so that this section of analyses also includes female information for females that do not also have fecal samples.
+
+
+![](site_n_diet.png)\
+
+#### Question C: Does a female's CORT, mass, and/or wing predict the percent aquatic in her diet?
+
+Model: Beta Logistic Regression: (percent aquatic ~ CORT + mass + site)
+
+Like Question 2B, only experimental treatment and site seems to show any sort of relationship with diet.
+
+Note that here, we're only looking at third female captures (i.e. captures during provisioning)
+
+![](mom_exp_mom_diet.png)\
+
+![](mom_site_mom_diet.png)\
+
+### Question 3: Does aquatic insect content affect nestling morphology?
+
+Model: Linear?? (body mass ~ percent aquatic*site + (1|nestID))
+
+![](nd12_aq_mass.png)\
 
 ### Literature Cited
