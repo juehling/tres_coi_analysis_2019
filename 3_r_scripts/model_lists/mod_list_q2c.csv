@@ -1,0 +1,7 @@
+index,x
+1,percent_aquatic_ra_logit ~ cort1_correct*site + exp_treat + (1|site_box_year)
+2,percent_aquatic_ra_logit ~ cort1_correct + site + exp_treat + (1|site_box_year)
+3,percent_aquatic_ra_logit ~ mass*site + exp_treat + (1|site_box_year)
+4,percent_aquatic_ra_logit ~ mass + site + exp_treat + (1|site_box_year)
+5,percent_aquatic_ra_logit ~ Flat_Wing*site + exp_treat + (1|site_box_year)
+6,percent_aquatic_ra_logit ~ Flat_Wing + site + exp_treat + (1|site_box_year)

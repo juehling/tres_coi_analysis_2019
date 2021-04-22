@@ -19,6 +19,8 @@ library(ggplot2)
 library(here)
 library(sjPlot)
 library(car)
+
+getwd()
 ```
 
 # Overview
@@ -79,13 +81,13 @@ The first thing we will check is how many sequences we have per sample. This is 
 
 Here is the log total number of reads per sample for all samples combine (log scale makes it easier to see the variation on the low end, which is what we care about). This plot includes wild adults, wild nestlings, and negative controls.
   
-![](total_reads.png)\  
+![](total_reads.png){width=90%}\  
   
 There is a reference line showing where 150 reads falls. That is a pretty low number to rarefy to, but even there we lose a bunch of samples that are very low. It might be that in many of those samples all 150 reads are from the same single food item and in some of the higher read samples you still recover the full (or mostly full) community even with only 150 samples.
 
 Here is the same plot with samples broken out by wild adults, wild nestlings, and negative controls.
 
-![](total_reads_split.png)\
+![](total_reads_split.png){width=90%}\
 
 It looks like all but one negative control has very low reads. One thing that we may need to think about is that even though these negative controls have low reads overall, they *do* have some reads that hit on arthropod and other sequences. It's unclear if that means that there was some cross contamination in the lab procedure, or if this is a result of the index-bleed that was mentioned above. We could try to get the `AMPtk` function running for index bleed or alternatively, we could try doing something like only counting a prey item as encountered if there are more than 50 (?) reads for that taxa within a sample. Eliot & Dave are currently using 50 reads as a cuttoff for their warbler diet data. Just as a quick check Conor looked at pruning to a certain number of reads for the negative control samples. If you only include taxa with >25 reads there are only 3 genera retained across all the negative controls, that might be a reasonable criteria.
 
@@ -95,15 +97,15 @@ Here, we examine the captive nestling samples to see their distribution of total
 
 This figure shows the distribution of reads with all captive samples considered together.
 
-![](total_reads_cap.png)\
+![](total_reads_cap.png){width=90%}\
 
 It looks like the total number of reads is definitely frequently above our 150 line.
 
 This figure shows the distribution of reads split out by day.
 
-![](total_reads_split_cap.png)\
+![](total_reads_split_cap.png){width=70%}\
 
-We see that, except for day 6 when there is one sample that had a really high number of reads, there doesn't seem to be any pattern of decreasing reads across days. This is interesting because, once the birds were brought into captivity, they were fed sterile food that shouldn't have had any insects in it. However, Conor pointed out that this may be related to 
+We see that, except for day 6 when there is one sample that had a really high number of reads, there doesn't seem to be any pattern of decreasing reads across days. This is interesting because, once the birds were brought into captivity, they were fed sterile food that shouldn't have had any insects in it. However, Conor pointed out that this may be related to the fact that the PCR process amplifies whatever DNA is in there, so it may have just amplified the small amount of DNA that it "found."
 
 # Filtering in Phyloseq 
 
@@ -129,45 +131,126 @@ Here, for general exploration of the data, we plot families that occur in over 2
 
 ### Question 1: What do tree swallows eat in Tompkins County, New York?
 
+We will need to discuss how to approach this question.
+
 ### Question 2: What predicts aquatic insect content in the diet?
+
+For all analyses for question 2, we have left out males. It is worth discussing whether it makes sense to include males in these models or not (at least, for questions 2A and 2C). They do increase the sample size, but we just don't know as much about them.
+
+Additionally, for all of these analyses, I have transformed the percentage data used as the response variable (i.e. percent aquatic) using the logit scale. This transformation, performed with the gtools package, looks like this: logit(percent_aquatic, min = -0.0001, max = 1.0001). This was at the suggestion of a statistical consultant from the Cornell Statistical Consulting Unit. Others have suggested using beta logistic regression, but there are no packages in R that are able to do that with 1) random effects, and 2) both 0s and 1s in the percent data.
 
 #### Question A: Do age, site, or an interaction between the two predict aquatic insect content in diet?
 
-Model: Beta Logistic Regression: (percent aquatic ~ age*site + treatment + (1|nestID))
+Here, I have fit a linear mixed effects model with percent aquatic (logit transformed) as the predictor; age, site, age*site, and experimental treatment as fixed effects; and box as a random effect. We see that there is a strong effect of age and site on percent aquatic insects in diet. Additionally, there is a strong effect of the interaction between age and site (Unit 4).
+
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2a_mod_tab.html')
+```
+````
 
 ![](lh_age_days_site.png)\
 
-#### Question B: Does a mother's CORT, mass, and/or wing predict the percent aquatic in the diet of her nestlings?
+#### Question B: Does a mother's CORT, mass, wing, and/or brood size predict the percent aquatic in the diet of her nestlings?
 
-Model: Beta Logistic Regression: (percent aquatic in individual nestling diet ~ mom's CORT + mom's mass + mom's wing + site + 1|nestID)
+To do for this question: use brood size at time of sampling (currently using day 6 brood size)
 
-I've made a lot of figures here but nothing seems to show a clear relationship with nestling diet except perhaps experimental treatment and site.
+For this question, we used a model selection approach. We again transformed "percent aquatic" using the logit transformation.
+
+It was difficult to know which brood size to include as the samples are taken over the course of the provisioning period, during which nestling loss occurs. For simplicity, I chose to use Day 6 Brood Size, since it's an "average" of the provisioning period.
+
+For CORT measurements, we only used baseline because we did not take stress bleeds from CU4/TH birds. I also excluded one nest with a mom that had a CORT outlier measurement (baseline was >30).
+
+The AIC table is below.
+
+```{r, echo = FALSE}
+tab <- read.csv(here("3_r_scripts/model_outputs/AIC_Output_q2b.csv"))
+tab_df(tab)
+
+```
+
+There are four top models. Their outputs are below:
+
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2b_mod1_tab.html')
+```
+````
 
 
-![](mom_exp_n_diet.png)\
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2b_mod2_tab.html')
+```
+````
 
 
-This figure is made just with nestling day 12 samples. Also, note that this figure looks a little different than the boxplots in Question 2A because this only includes nestlings for which there are also adult samples. I need to go back and change the code so that this section of analyses also includes female information for females that do not also have fecal samples.
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2b_mod3_tab.html')
+```
+````
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2b_mod4_tab.html')
+```
+````
 
+In each of these models, site is close to or is a significant predictor of nestling diet. None of the other variables are important predictors.
 
-![](site_n_diet.png)\
+![](site_n_diet.png){width=60%}\
 
 #### Question C: Does a female's CORT, mass, and/or wing predict the percent aquatic in her diet?
 
-Model: Beta Logistic Regression: (percent aquatic ~ CORT + mass + site)
+To do: add in separate analysis with day 6 samples and nest-level fate.
 
-Like Question 2B, only experimental treatment and site seems to show any sort of relationship with diet.
+For this question, we again used a model selection approach, and transformed "percent aquatic" using the logit transformation.
 
-Note that here, we're only looking at third female captures (i.e. captures during provisioning)
+For CORT measurements, we only used baseline again because we did not take stress bleeds from CU4/TH birds at the third captures. I also excluded two individuals who had baseline CORT measurements of over 30. Also, because we're using a model selection approach, I removed all birds without baseline CORT measurements. No birds were missing mass or wing measurements. Note that for wing, I took the first wing measurement that was taken on every bird. This is because some birds were not measured a second or third time when they were re-captured.
 
-![](mom_exp_mom_diet.png)\
+The AIC table is below.
 
-![](mom_site_mom_diet.png)\
+```{r, echo = FALSE}
+tab <- read.csv(here("3_r_scripts/model_outputs/AIC_Output_q2c.csv"))
+tab_df(tab)
+
+```
+
+There are two top models. Their outputs are below:
+
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2c_mod1_tab.html')
+```
+````
+
+
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q2c_mod2_tab.html')
+```
+````
+
+In the top model, both mass and unit are significant predictors of percent aquatic in adult females' diets. In the second model, ranked closely behind, unit is a significant predictor of percent aquatic, and wing is close to significant.
+
+![](mom_site_mom_diet.png){width=60%}\
+
+![](mom_mass_mom_diet.png){width=60%}\
+
+I had to plot the mass figure on the logit scale to actually see the positive relationship here. Not really sure what to make of this!
+
+![](mom_wing_mom_diet.png){width=60%}\
+
 
 ### Question 3: Does aquatic insect content affect nestling morphology?
 
-Model: Linear?? (body mass ~ percent aquatic*site + (1|nestID))
+Here, I have fit a linear mixed effects model with nestling mass as the predictor; percent aquatic, site, and percent aquatic*siteas fixed effects; and box as a random effect. There are no significant predictors.
 
-![](nd12_aq_mass.png)\
+````{=html}
+```{r, echo=FALSE, results='asis'}
+xfun::file_string('model_outputs/q3_mod_tab.html')
+```
+````
+
 
 ### Literature Cited

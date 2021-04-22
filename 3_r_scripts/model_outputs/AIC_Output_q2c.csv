@@ -1,0 +1,7 @@
+"","mods","AICc","LL","K","D.AICc","rellik","Wi"
+"4","percent_aquatic_ra_logit ~ mass + site + exp_treat + (1|site_box_year)",864.528611667189,-419.283173758123,12,0,1,0.8
+"6","percent_aquatic_ra_logit ~ Flat_Wing + site + exp_treat + (1|site_box_year)",868.368790849851,-421.203263349454,12,3.84017918266227,0.14659382800582,0.12
+"2","percent_aquatic_ra_logit ~ cort1_correct + site + exp_treat + (1|site_box_year)",870.141011812783,-422.08937383092,12,5.61240014559417,0.0604342021951941,0.05
+"3","percent_aquatic_ra_logit ~ mass*site + exp_treat + (1|site_box_year)",871.161301896091,-419.042189409584,15,6.63269022890222,0.0362852079789927,0.03
+"5","percent_aquatic_ra_logit ~ Flat_Wing*site + exp_treat + (1|site_box_year)",873.987295520808,-420.455186221942,15,9.45868385361894,0.00883228141530149,0.01
+"1","percent_aquatic_ra_logit ~ cort1_correct*site + exp_treat + (1|site_box_year)",875.870979110601,-421.397028016839,15,11.3423674434124,0.00344378637775229,0

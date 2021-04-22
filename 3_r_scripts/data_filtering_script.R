@@ -1,20 +1,24 @@
 ###
 # Written by: Conor Taff, Jenny Uehling
-# Last updated: 3/30/2021
+# Last updated: 4/6/2021
 # Run under R Studio XX on XX
 
-# This is the main analysis script for processing the COI data after running through
+# This is the main script for processing the COI data after running through
 # AMPtk. Just a few files are saved from AMPtk to use here.
 
 ################################################################################
 # Load libraries ----
 
-pacman::p_load("tidyverse", "phyloseq", "plyr", "vegan", "here", "ggpubr", "igraph", "data.table", "dplyr", "car", "glmmTMB", "lme4", "sjPlot")
-# tidyverse & plyr for data wrangling
+pacman::p_load("tidyverse", "phyloseq", "plyr", "vegan", "here", "ggpubr",
+               "data.table", "dplyr", "car", "sjPlot")
+
+# tidyverse, plyr, and dplyr for data wrangling
 # phyloseq & vegan for community analyses and plotting
 # here for file reference by relative paths
 # ggpubr for plotting
-# igraph for network plots
+# data.table for creating data tables
+# car for ??
+# sjPlot for ??
 
 # Will need to install these libraries first if not yet installed
 # To install phyloseq, must install BiocManager and then use the following command: BiocManager::install(c("phyloseq"))
@@ -53,7 +57,12 @@ s_info <- left_join(s_info, nest_info, by = "site_box_year")
 # Create a column that lists both the experiment AND the treatment
 s_info$exp_treat <- paste(s_info$Nest_Experiment, s_info$Nest_Treatment, sep="_")
 
-################################################################################
+# Correctly classify experimental treatments
+table(s_info$exp_treat)
+s_info$exp_treat[s_info$exp_treat == "_"] <- "Control"
+s_info$exp_treat[s_info$exp_treat == "_Control"] <- "Control"
+s_info$exp_treat[s_info$exp_treat == "NA_NA"] <- "Control"
+
 # Load and wrangle sequencing data ----
 
 # the prefix used for AMPtk processing
@@ -536,209 +545,7 @@ aquatic_nestlings <- dplyr::rename(aquatic_nestlings,
 aquatic_nestlingsadults <- merge(aquatic_nestlings, captures)
 
 ################################################################################
-# Description of data frames
+# Write csvs to use in data analysis script
+write.csv(aquatic, here("2_modified_data/aquatic.csv"))
+write.csv(aquatic_nestlingsadults, here("2_modified_data/aquatic_nestlingsadults.csv"))
 
-# There are three major data frames we will use.
-
-
-################################################################################
-# Question 2: What predicts aquatic insect content in diet? ----
-# Question 2A: Do age, site, or an interaction between the two predict adult
-# insect content in diet?
-
-# Pull out samples only from provisioning
-aquatic_prov_adF <- aquatic[aquatic$age == "Adult" | aquatic$sex == "F" ,] # Select females
-aquatic_prov_adF <- aquatic_prov_adF[aquatic_prov_adF$cap_num == "3" ,] # Select females from third capture only (during provisioning)
-aquatic_prov_adM <- aquatic[aquatic$age == "Adult" | aquatic$sex == "M" ,] # Select males
-aquatic_prov_nestlings <- aquatic[aquatic$age == "Nestling" ,] # Select nestlings
-# Note that all males were captured during provisioning so no need to filter any further
-aquatic_prov <- rbind(aquatic_prov_adF, aquatic_prov_adM, aquatic_prov_nestlings)
-
-
-p <- ggplot(aquatic_prov) +
-  geom_boxplot((aes(x=age_nestad, y=percent_aquatic_ra, fill=age_nestad))) + 
-  facet_wrap(~ site, ncol = 2) +
-  xlab("Age") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-# set order for ages for neatness in plots
-age_order = c("6", "12", "15", "Adult")
-p$data$age_nestad <- as.character(p$data$age_nestad)
-p$data$age_nestad <- factor(p$data$age_nestad, levels=age_order)
-
-ggsave(here("3_r_scripts/lh_age_days_site.png"), p, width = 10, height = 8, device = "png")
-
-################################################################################
-# Question 2: What predicts aquatic insect content in diet? ----
-# Question 2B: Does a mother's CORT and mass predict the percent aquatic in the diet of her nestlings?
-
-#############
-# PLOT: Mom's CORT + percent aquatic
-#############
-
-# Take out 4.15
-aquatic_nestlingsadults_min4.15 <- aquatic_nestlingsadults[aquatic_nestlingsadults$site_box_year != "Unit_4_15_2019" ,]
-
-p_base <- ggplot(aquatic_nestlingsadults_min4.15) +
-  geom_point((aes(x=ad_Bleed1_CORT_corrected_value, y=n_percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_sr <- ggplot(aquatic_nestlingsadults_min4.15) +
-  geom_point((aes(x=ad_Bleed2_CORT_corrected_value-ad_Bleed1_CORT_corrected_value, y=n_percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_dex <- ggplot(aquatic_nestlingsadults_min4.15) +
-  geom_point((aes(x=ad_Bleed3_CORT_corrected_value, y=n_percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-#############
-# PLOT: Mom's mass + percent aquatic
-#############
-
-p_mass <- ggplot(aquatic_nestlingsadults) +
-  geom_point((aes(x=ad_Mass, y=n_percent_aquatic_ra))) + 
-  xlab("Female mass") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-#############
-# PLOT: Mom's wing + percent aquatic
-#############
-
-p_wing <- ggplot(aquatic_nestlingsadults) +
-  geom_point((aes(x=ad_Flat_Wing, y=n_percent_aquatic_ra))) + 
-  xlab("Female flatwing") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-#############
-# PLOT: Mom's treatment + percent aquatic
-#############
-
-p_exp <- ggplot(aquatic_nestlingsadults) +
-  geom_boxplot((aes(x=ad_Individual_Treatment, y=n_percent_aquatic_ra))) + 
-  xlab("Female experimental treatment") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-ggsave(here("3_r_scripts/mom_exp_n_diet.png"), p_exp, width = 7, height = 9, device = "png")
-
-p_site <- ggplot(aquatic_nestlingsadults[aquatic_nestlingsadults$n_age.1 == "12" ,]) +
-  geom_boxplot((aes(x=site, y=n_percent_aquatic_ra))) + 
-  xlab("Site") +
-  ylab("Percent Aquatic Insects in Nestling Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-ggsave(here("3_r_scripts/site_n_diet.png"), p_site, width = 7, height = 7, device = "png")
-
-################################################################################
-# Question 2: What predicts aquatic insect content in diet? ----
-# Question 2C: Does a female's CORT and mass predict the percent aquatic in her diet?
-
-aquatic_ad <- aquatic[aquatic$age == "Adult" ,]
-aquatic_ad_cap1 <- aquatic_ad[aquatic_ad$cap_num == "1" ,]
-aquatic_ad_cap3 <- aquatic_ad[aquatic_ad$cap_num == "3" ,]
-
-p_base <- ggplot(aquatic_ad_cap1) +
-  geom_point((aes(x=cort1_correct, y=percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_sr <- ggplot(aquatic_ad_cap1) +
-  geom_point((aes(x=cort2_correct-cort1_correct, y=percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_dex <- ggplot(aquatic_ad_cap1) +
-  geom_point((aes(x=cort3_correct, y=percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_mass <- ggplot(aquatic_ad_cap1) +
-  geom_point((aes(x=mass, y=percent_aquatic_ra))) + 
-  xlab("Female CORT") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-# Needed: get flatwing from prior captures
-p_wing <- ggplot(aquatic_ad_cap1) +
-  geom_point((aes(x=fwing, y=percent_aquatic_ra))) + 
-  xlab("Female flatwing") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-p_exp <- ggplot(aquatic_ad_cap3) +
-  geom_boxplot((aes(x=exp_treat, y=percent_aquatic_ra))) + 
-  xlab("Treatment") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-ggsave(here("3_r_scripts/mom_exp_mom_diet.png"), p_exp, width = 7, height = 9, device = "png")
-
-p_site <- ggplot(aquatic_ad_cap3) +
-  geom_boxplot((aes(x=site, y=percent_aquatic_ra))) + 
-  xlab("Site") +
-  ylab("Percent Aquatic Insects in Diet") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-ggsave(here("3_r_scripts/mom_site_mom_diet.png"), p_site, width = 7, height = 7, device = "png")
-
-################################################################################
-# Question 3: Does aquatic insect content affect nestling morphology?
-
-aquatic_n <- aquatic[aquatic$age == "Nestling" ,]
-aquatic_n <- aquatic_n[aquatic_n$age.1 == "12" | aquatic_n$age.1 == "15" ,]
-aquatic_n_day12 <- aquatic_n[aquatic_n$age.1 == "12" ,]
-
-q3 <- lmer(mass ~ percent_aquatic_ra*site + (1|site_box_year), data = aquatic_n_day12, REML = FALSE)
-tab_model_q3 <- tab_model(q3)
-
-p <- ggplot(aquatic_n_day12) +
-  geom_point((aes(x=percent_aquatic_ra, y=mass))) + 
-  xlab("Nestling Percent Aquatic") +
-  ylab("Mass") +
-  theme(axis.title = element_text(size = 16)) + theme(axis.text.x = element_text(angle = 90, size = 14)) +
-  theme(legend.title = element_text(size = 16), legend.text = element_text(size = 14)) +
-  theme(strip.text = element_text(size = 14))
-
-ggsave(here("3_r_scripts/nd12_aq_mass.png"), p, width = 7, height = 7, device = "png")

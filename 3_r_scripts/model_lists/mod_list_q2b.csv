@@ -1,0 +1,9 @@
+index,x
+1,n_percent_aquatic_ra_logit ~ ad_Bleed1_CORT_corrected_value*site + n_age.1 + n_exp_treat + (1|site_box_year)
+2,n_percent_aquatic_ra_logit ~ ad_Bleed1_CORT_corrected_value + site + n_age.1 + n_exp_treat + (1|site_box_year)
+3,n_percent_aquatic_ra_logit ~ ad_Mass*site + n_age.1 + n_exp_treat + (1|site_box_year)
+4,n_percent_aquatic_ra_logit ~ ad_Mass + site + n_age.1 + n_exp_treat + (1|site_box_year)
+5,n_percent_aquatic_ra_logit ~ ad_Flat_Wing*site + n_age.1 + n_exp_treat + (1|site_box_year)
+6,n_percent_aquatic_ra_logit ~ ad_Flat_Wing + site + n_age.1 + n_exp_treat + (1|site_box_year)
+7,n_percent_aquatic_ra_logit ~ n_Brood_Size_Day6*site + n_age.1 + n_exp_treat + (1|site_box_year)
+8,n_percent_aquatic_ra_logit ~ n_Brood_Size_Day6 + site + n_age.1 + n_exp_treat + (1|site_box_year)

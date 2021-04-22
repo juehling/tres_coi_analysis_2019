@@ -1,0 +1,9 @@
+"","mods","AICc","LL","K","D.AICc","rellik","Wi"
+"6","n_percent_aquatic_ra_logit ~ ad_Flat_Wing + site + n_age.1 + n_exp_treat + (1|site_box_year)",1309.30202960135,-642.046363637886,12,0,1,0.25
+"2","n_percent_aquatic_ra_logit ~ ad_Bleed1_CORT_corrected_value + site + n_age.1 + n_exp_treat + (1|site_box_year)",1309.61878024573,-642.204738960076,12,0.316750644380136,0.853529373330322,0.21
+"8","n_percent_aquatic_ra_logit ~ n_Brood_Size_Day6 + site + n_age.1 + n_exp_treat + (1|site_box_year)",1309.68224880222,-642.236473238317,12,0.380219200863394,0.826868503831927,0.21
+"4","n_percent_aquatic_ra_logit ~ ad_Mass + site + n_age.1 + n_exp_treat + (1|site_box_year)",1309.7180332144,-642.25436544441,12,0.41600361304927,0.812205569441244,0.2
+"1","n_percent_aquatic_ra_logit ~ ad_Bleed1_CORT_corrected_value*site + n_age.1 + n_exp_treat + (1|site_box_year)",1311.26232942994,-639.689988244383,15,1.96029982858931,0.375254838569954,0.09
+"3","n_percent_aquatic_ra_logit ~ ad_Mass*site + n_age.1 + n_exp_treat + (1|site_box_year)",1315.11689960617,-641.617273332496,15,5.81487000481502,0.0546156393421763,0.01
+"7","n_percent_aquatic_ra_logit ~ n_Brood_Size_Day6*site + n_age.1 + n_exp_treat + (1|site_box_year)",1315.23328708031,-641.675467069567,15,5.93125747895806,0.0515280613316774,0.01
+"5","n_percent_aquatic_ra_logit ~ ad_Flat_Wing*site + n_age.1 + n_exp_treat + (1|site_box_year)",1315.64894644364,-641.883296751231,15,6.34691684228642,0.041858582678765,0.01
